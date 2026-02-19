@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getProducts, saveProducts, isLoggedIn, logout } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
 import { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,70 +15,102 @@ import { Badge } from "@/components/ui/badge";
 import { Coffee, Plus, Pencil, Trash2, LogOut, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
-const emptyProduct: Omit<Product, "id"> = {
+interface ProductForm {
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  category: string;
+  label: string | null;
+}
+
+const emptyForm: ProductForm = {
   name: "",
   description: "",
   price: 0,
-  image: "",
+  image_url: "",
   category: "coffee",
-  label: undefined,
+  label: null,
 };
 
 export default function Admin() {
   const navigate = useNavigate();
+  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState<Omit<Product, "id">>(emptyProduct);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<ProductForm>(emptyForm);
 
   useEffect(() => {
-    if (!isLoggedIn()) {
+    if (!authLoading && (!user || !isAdmin)) {
       navigate("/login");
-      return;
     }
-    setProducts(getProducts());
-  }, [navigate]);
+  }, [user, isAdmin, authLoading, navigate]);
 
-  const handleSave = () => {
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    const { data } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setProducts((data as Product[]) || []);
+  };
+
+  const handleSave = async () => {
     if (!form.name || !form.price) {
       toast.error("Name and price are required");
       return;
     }
 
-    let updated: Product[];
-    if (editing) {
-      updated = products.map((p) => (p.id === editing.id ? { ...form, id: editing.id } : p));
+    const record = {
+      name: form.name,
+      description: form.description,
+      price: form.price,
+      image_url: form.image_url,
+      category: form.category,
+      label: form.label || null,
+    };
+
+    if (editingId) {
+      const { error } = await supabase.from("products").update(record).eq("id", editingId);
+      if (error) { toast.error(error.message); return; }
       toast.success("Product updated!");
     } else {
-      const newProduct: Product = { ...form, id: Date.now().toString() };
-      updated = [...products, newProduct];
+      const { error } = await supabase.from("products").insert(record);
+      if (error) { toast.error(error.message); return; }
       toast.success("Product added!");
     }
 
-    setProducts(updated);
-    saveProducts(updated);
     setDialogOpen(false);
-    setEditing(null);
-    setForm(emptyProduct);
+    setEditingId(null);
+    setForm(emptyForm);
+    fetchProducts();
   };
 
   const handleEdit = (product: Product) => {
-    setEditing(product);
-    setForm({ name: product.name, description: product.description, price: product.price, image: product.image, category: product.category, label: product.label });
+    setEditingId(product.id);
+    setForm({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image_url: product.image_url,
+      category: product.category,
+      label: product.label || null,
+    });
     setDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    const updated = products.filter((p) => p.id !== id);
-    setProducts(updated);
-    saveProducts(updated);
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
     toast.success("Product deleted!");
+    fetchProducts();
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  if (authLoading) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,7 +124,7 @@ export default function Admin() {
             <Button variant="outline" size="sm" onClick={() => navigate("/")} className="gap-2">
               <ArrowLeft className="h-4 w-4" /> Menu
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
+            <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
               <LogOut className="h-4 w-4" /> Sign Out
             </Button>
           </div>
@@ -101,7 +134,7 @@ export default function Admin() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold text-foreground">Products ({products.length})</h2>
-          <Button onClick={() => { setEditing(null); setForm(emptyProduct); setDialogOpen(true); }} className="gap-2">
+          <Button onClick={() => { setEditingId(null); setForm(emptyForm); setDialogOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" /> Add Product
           </Button>
         </div>
@@ -123,7 +156,7 @@ export default function Admin() {
                 {products.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell>
-                      <img src={p.image} alt={p.name} className="h-12 w-12 rounded-lg object-cover" />
+                      <img src={p.image_url} alt={p.name} className="h-12 w-12 rounded-lg object-cover" />
                     </TableCell>
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell className="capitalize">{p.category}</TableCell>
@@ -151,11 +184,10 @@ export default function Admin() {
         </Card>
       </main>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Product" : "Add New Product"}</DialogTitle>
+            <DialogTitle>{editingId ? "Edit Product" : "Add New Product"}</DialogTitle>
             <DialogDescription>Fill in the product details below.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -174,7 +206,7 @@ export default function Admin() {
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as Product["category"] })}>
+                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="coffee">Coffee</SelectItem>
@@ -187,7 +219,7 @@ export default function Admin() {
             </div>
             <div className="space-y-2">
               <Label>Label</Label>
-              <Select value={form.label || "none"} onValueChange={(v) => setForm({ ...form, label: v === "none" ? undefined : v as Product["label"] })}>
+              <Select value={form.label || "none"} onValueChange={(v) => setForm({ ...form, label: v === "none" ? null : v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No label</SelectItem>
@@ -199,12 +231,12 @@ export default function Admin() {
             </div>
             <div className="space-y-2">
               <Label>Image URL</Label>
-              <Input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="https://..." />
+              <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>{editing ? "Save Changes" : "Add Product"}</Button>
+            <Button onClick={handleSave}>{editingId ? "Save Changes" : "Add Product"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

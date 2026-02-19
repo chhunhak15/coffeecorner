@@ -3,7 +3,8 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  image: string;
-  label?: "new" | "popular" | "bestseller";
+  image_url: string;
+  label?: "new" | "popular" | "bestseller" | null;
   category: "coffee" | "tea" | "smoothie" | "other";
+  created_at?: string;
 }
