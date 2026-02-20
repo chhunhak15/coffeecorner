@@ -51,7 +51,10 @@ export default function Admin() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [shopNameInput, setShopNameInput] = useState(getShopName());
+  const [shopLogoUrl, setShopLogoUrl] = useState<string | null>(getShopLogo());
+  const [logoUploading, setLogoUploading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveShopName = () => {
