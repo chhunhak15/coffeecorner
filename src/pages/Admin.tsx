@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Coffee, Plus, Pencil, Trash2, LogOut, ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
-import { getShopName, setShopName } from "@/pages/Index";
+import { getShopName, setShopName } from "@/lib/shopSettings";
 
 interface ProductForm {
   name: string;
