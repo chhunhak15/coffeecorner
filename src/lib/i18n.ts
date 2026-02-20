@@ -19,7 +19,7 @@ export const translations = {
   },
   zh: {
     menuTitle: "我们的饮品菜单",
-    menuSubtitle: "用爱和最优质的食材精心制作的饮品。",
+    menuSubtitle: "柬埔寨手工制作，柬埔寨味道，柬埔寨风格",
     loading: "正在加载菜单...",
     noItems: "该分类暂无饮品。",
     adminLogin: "管理员登录",
