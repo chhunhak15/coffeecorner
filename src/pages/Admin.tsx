@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Coffee, Plus, Pencil, Trash2, LogOut, ArrowLeft, Save } from "lucide-react";
+import { Coffee, Plus, Pencil, Trash2, LogOut, ArrowLeft, Save, Upload, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { getShopName, setShopName } from "@/lib/shopSettings";
 
@@ -51,10 +51,34 @@ export default function Admin() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [shopNameInput, setShopNameInput] = useState(getShopName());
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveShopName = () => {
     setShopName(shopNameInput.trim() || "Coffee Corner");
     toast.success("Shop name updated!");
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const { error } = await supabase.storage
+      .from("product-images")
+      .upload(fileName, file, { upsert: true });
+    if (error) {
+      toast.error("Upload failed: " + error.message);
+      setUploading(false);
+      return;
+    }
+    const { data: { publicUrl } } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(fileName);
+    setForm((f) => ({ ...f, image_url: publicUrl }));
+    toast.success("Image uploaded!");
+    setUploading(false);
   };
 
   useEffect(() => {
@@ -307,8 +331,38 @@ export default function Admin() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Image URL</Label>
-              <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
+              <Label>Image</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={form.image_url}
+                  onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                  placeholder="Paste URL or browse to upload…"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 gap-2"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" />
+                  {uploading ? "Uploading…" : "Browse"}
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+              </div>
+              {form.image_url ? (
+                <img src={form.image_url} alt="Preview" className="h-24 w-24 rounded-lg object-cover border" />
+              ) : (
+                <div className="h-24 w-24 rounded-lg border border-dashed flex items-center justify-center text-muted-foreground">
+                  <ImageIcon className="h-8 w-8" />
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
