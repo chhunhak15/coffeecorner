@@ -35,7 +35,7 @@ export const translations = {
   },
   vi: {
     menuTitle: "Thực Đơn Đồ Uống",
-    menuSubtitle: "Đồ uống thủ công được làm bằng tình yêu và nguyên liệu tươi ngon nhất.",
+    menuSubtitle: "Thủ công Campuchia, hương vị Campuchia, phong cách Campuchia",
     loading: "Đang tải thực đơn...",
     noItems: "Chưa có đồ uống trong danh mục này.",
     adminLogin: "Đăng Nhập Admin",
