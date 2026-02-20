@@ -24,12 +24,20 @@ const Index = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setProducts((data as Product[]) || []);
-      setLoading(false);
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) {
+          console.error("Products fetch error:", error.message, error.details, error.hint);
+        }
+        setProducts((data as Product[]) || []);
+      } catch (e) {
+        console.error("Products fetch exception:", e);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchProducts();
   }, []);
