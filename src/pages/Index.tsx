@@ -69,13 +69,53 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 backdrop-blur-md bg-background/80 border-b">
-        <div className="container mx-auto flex items-center justify-between py-4 px-4">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="Shop Logo" className="h-10 w-auto" />
-            <span className="text-xl font-bold text-foreground tracking-tight">{shopName}</span>
+        <div className="container mx-auto px-4 py-3">
+          {/* Main row: logo + auth buttons */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="Shop Logo" className="h-10 w-auto" />
+              <span className="text-xl font-bold text-foreground tracking-tight">{shopName}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Language switcher — hidden on mobile, shown on sm+ */}
+              <div className="hidden sm:flex items-center gap-1 border border-border rounded-full px-1 py-1 bg-background">
+                {langOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => changeLang(opt.value)}
+                    className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full transition-colors ${
+                      lang === opt.value
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <span>{opt.flag}</span>
+                    <span>{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {user ? (
+                <>
+                  {isAdmin && (
+                    <Button variant="outline" size="sm" onClick={() => navigate("/admin")} className="gap-2">
+                      <Settings className="h-4 w-4" /> {t.dashboard}
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
+                    <LogOut className="h-4 w-4" /> {t.signOut}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => navigate("/login")} className="gap-2">
+                  <LogIn className="h-4 w-4" /> {t.adminLogin}
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Language switcher */}
+
+          {/* Language switcher — mobile only, shown below auth buttons */}
+          <div className="flex sm:hidden justify-end mt-2">
             <div className="flex items-center gap-1 border border-border rounded-full px-1 py-1 bg-background">
               {langOptions.map((opt) => (
                 <button
@@ -92,23 +132,6 @@ const Index = () => {
                 </button>
               ))}
             </div>
-
-            {user ? (
-              <>
-                {isAdmin && (
-                  <Button variant="outline" size="sm" onClick={() => navigate("/admin")} className="gap-2">
-                    <Settings className="h-4 w-4" /> {t.dashboard}
-                  </Button>
-                )}
-                <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
-                  <LogOut className="h-4 w-4" /> {t.signOut}
-                </Button>
-              </>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate("/login")} className="gap-2">
-                <LogIn className="h-4 w-4" /> {t.adminLogin}
-              </Button>
-            )}
           </div>
         </div>
       </header>
