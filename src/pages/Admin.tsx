@@ -82,7 +82,11 @@ export default function Admin() {
 
     const record = {
       name: form.name,
+      name_zh: form.name_zh || null,
+      name_vi: form.name_vi || null,
       description: form.description,
+      description_zh: form.description_zh || null,
+      description_vi: form.description_vi || null,
       price: form.price,
       image_url: form.image_url,
       category: form.category,
