@@ -18,7 +18,11 @@ import { getShopName, setShopName } from "@/lib/shopSettings";
 
 interface ProductForm {
   name: string;
+  name_zh: string;
+  name_vi: string;
   description: string;
+  description_zh: string;
+  description_vi: string;
   price: number;
   image_url: string;
   category: string;
@@ -27,7 +31,11 @@ interface ProductForm {
 
 const emptyForm: ProductForm = {
   name: "",
+  name_zh: "",
+  name_vi: "",
   description: "",
+  description_zh: "",
+  description_vi: "",
   price: 0,
   image_url: "",
   category: "coffee",
