@@ -11,7 +11,7 @@ const labelConfig = {
   bestseller: { text: "BESTSELLER", className: "bg-destructive text-destructive-foreground" },
 };
 
-export function ProductCard({ product, lang = "en" }: { product: Product; lang?: Lang }) {
+export function ProductCard({ product, lang = "en", isAdmin, onEdit }: { product: Product; lang?: Lang; isAdmin?: boolean; onEdit?: (product: Product) => void }) {
   const label = product.label ? labelConfig[product.label] : null;
 
   const displayName =
