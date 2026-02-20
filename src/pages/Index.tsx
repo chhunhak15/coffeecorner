@@ -8,6 +8,10 @@ import { useNavigate } from "react-router-dom";
 import { LogIn, LogOut, Settings } from "lucide-react";
 import logo from "@/assets/logo.jpg";
 
+const SHOP_NAME_KEY = "shop_name";
+export const getShopName = () => localStorage.getItem(SHOP_NAME_KEY) || "Coffee Corner";
+export const setShopName = (name: string) => localStorage.setItem(SHOP_NAME_KEY, name);
+
 const categories = [
 { key: "all", label: "All" },
 { key: "coffee", label: "Coffee" },
@@ -20,8 +24,17 @@ const Index = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shopName, setShopNameState] = useState(getShopName());
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const onStorage = () => setShopNameState(getShopName());
+    window.addEventListener("storage", onStorage);
+    // Also poll localStorage in case admin is on same tab
+    const interval = setInterval(() => setShopNameState(getShopName()), 1000);
+    return () => { window.removeEventListener("storage", onStorage); clearInterval(interval); };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -55,8 +68,8 @@ const Index = () => {
       <header className="sticky top-0 z-40 backdrop-blur-md bg-background/80 border-b">
         <div className="container mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-          <img src={logo} alt="Coffee Corner Logo" className="h-10 w-auto" />
-
+            <img src={logo} alt="Shop Logo" className="h-10 w-auto" />
+            <span className="text-xl font-bold text-foreground tracking-tight">{shopName}</span>
           </div>
           <div className="flex items-center gap-2">
             {user ?

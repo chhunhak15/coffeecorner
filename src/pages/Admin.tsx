@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Coffee, Plus, Pencil, Trash2, LogOut, ArrowLeft } from "lucide-react";
+import { Coffee, Plus, Pencil, Trash2, LogOut, ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
+import { getShopName, setShopName } from "@/pages/Index";
 
 interface ProductForm {
   name: string;
@@ -40,6 +41,12 @@ export default function Admin() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
+  const [shopNameInput, setShopNameInput] = useState(getShopName());
+
+  const handleSaveShopName = () => {
+    setShopName(shopNameInput.trim() || "Coffee Corner");
+    toast.success("Shop name updated!");
+  };
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -132,6 +139,28 @@ export default function Admin() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        <Card className="border-0 shadow-md mb-8">
+          <CardHeader>
+            <CardTitle className="text-lg">Shop Settings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-3 max-w-sm">
+              <div className="flex-1 space-y-2">
+                <Label>Shop Name</Label>
+                <Input
+                  value={shopNameInput}
+                  onChange={(e) => setShopNameInput(e.target.value)}
+                  placeholder="Coffee Corner"
+                  onKeyDown={(e) => e.key === "Enter" && handleSaveShopName()}
+                />
+              </div>
+              <Button onClick={handleSaveShopName} className="gap-2">
+                <Save className="h-4 w-4" /> Save
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold text-foreground">Products ({products.length})</h2>
           <Button onClick={() => { setEditingId(null); setForm(emptyForm); setDialogOpen(true); }} className="gap-2">
