@@ -109,7 +109,11 @@ export default function Admin() {
     setEditingId(product.id);
     setForm({
       name: product.name,
+      name_zh: product.name_zh || "",
+      name_vi: product.name_vi || "",
       description: product.description,
+      description_zh: product.description_zh || "",
+      description_vi: product.description_vi || "",
       price: product.price,
       image_url: product.image_url,
       category: product.category,
