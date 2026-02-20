@@ -59,6 +59,28 @@ export default function Admin() {
     toast.success("Shop name updated!");
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const { error } = await supabase.storage
+      .from("product-images")
+      .upload(fileName, file, { upsert: true });
+    if (error) {
+      toast.error("Upload failed: " + error.message);
+      setUploading(false);
+      return;
+    }
+    const { data: { publicUrl } } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(fileName);
+    setForm((f) => ({ ...f, image_url: publicUrl }));
+    toast.success("Image uploaded!");
+    setUploading(false);
+  };
+
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
       navigate("/login");
