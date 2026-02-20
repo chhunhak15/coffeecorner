@@ -139,6 +139,28 @@ export default function Admin() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        <Card className="border-0 shadow-md mb-8">
+          <CardHeader>
+            <CardTitle className="text-lg">Shop Settings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-3 max-w-sm">
+              <div className="flex-1 space-y-2">
+                <Label>Shop Name</Label>
+                <Input
+                  value={shopNameInput}
+                  onChange={(e) => setShopNameInput(e.target.value)}
+                  placeholder="Coffee Corner"
+                  onKeyDown={(e) => e.key === "Enter" && handleSaveShopName()}
+                />
+              </div>
+              <Button onClick={handleSaveShopName} className="gap-2">
+                <Save className="h-4 w-4" /> Save
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold text-foreground">Products ({products.length})</h2>
           <Button onClick={() => { setEditingId(null); setForm(emptyForm); setDialogOpen(true); }} className="gap-2">
