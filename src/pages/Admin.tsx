@@ -62,6 +62,35 @@ export default function Admin() {
     toast.success("Shop name updated!");
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoUploading(true);
+    const fileExt = file.name.split(".").pop();
+    const fileName = `logo-${Date.now()}.${fileExt}`;
+    const { error } = await supabase.storage
+      .from("product-images")
+      .upload(fileName, file, { upsert: true });
+    if (error) {
+      toast.error("Logo upload failed: " + error.message);
+      setLogoUploading(false);
+      return;
+    }
+    const { data: { publicUrl } } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(fileName);
+    setShopLogo(publicUrl);
+    setShopLogoUrl(publicUrl);
+    toast.success("Logo updated!");
+    setLogoUploading(false);
+  };
+
+  const handleDeleteLogo = () => {
+    setShopLogo(null);
+    setShopLogoUrl(null);
+    toast.success("Logo removed — default logo restored.");
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
