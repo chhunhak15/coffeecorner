@@ -159,6 +159,11 @@ const Index = () => {
       <main className="container mx-auto px-3 sm:px-4 pb-12 sm:pb-20">
         {loading ? (
           <p className="text-center text-muted-foreground py-12">{t.loading}</p>
+        ) : fetchError ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">Could not load menu. Please try again.</p>
+            <Button variant="outline" onClick={fetchProducts}>Retry</Button>
+          </div>
         ) : filtered.length === 0 ? (
           <p className="text-center text-muted-foreground py-12">{t.noItems}</p>
         ) : (
